@@ -26,7 +26,7 @@ class LLaMAConfig(PretrainedConfig):
 
     def __init__(
         self,
-        dim: int,
+        d_model: int,
         n_layers: int,
         n_heads: int,
         vocab_size: int,
@@ -40,7 +40,7 @@ class LLaMAConfig(PretrainedConfig):
         **kwargs
     ):
         """Constructs LLaMAConfig."""
-        self.dim = dim
+        self.d_model = d_model
         self.n_layers = n_layers
         self.n_heads = n_heads
         self.vocab_size = vocab_size
