@@ -4,7 +4,7 @@ from typing import TYPE_CHECKING, List, Optional, Tuple
 from tokenizers import pre_tokenizers
 
 from transformers.tokenization_utils_base import BatchEncoding
-from transformers.tokenization_utils import PreTrainedTokenizer
+from transformers.tokenization_utils_fast import PreTrainedTokenizerFast
 from transformers.utils import logging
 
 
@@ -21,7 +21,7 @@ PRETRAINED_VOCAB_FILES_MAP = {
     },
 }
 
-class MewNetTokenizer(PreTrainedTokenizer):
+class MewNetTokenizerFast(PreTrainedTokenizerFast):
     vocab_files_names = VOCAB_FILES_NAMES
     pretrained_vocab_files_map = PRETRAINED_VOCAB_FILES_MAP
     model_input_names = ["input_ids", "attention_mask"]
