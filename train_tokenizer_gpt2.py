@@ -16,7 +16,7 @@ for root, dirs, files in os.walk("../MewNet/dataset"):
             print(file_path)
 
 def training_dataset_iterator():
-    for dataset_path in training_dataset[:3]:
+    for dataset_path in [training_dataset[3]]:
         with open(dataset_path, "r", encoding="utf-8") as f:
             for line in f:
                 yield json.loads(line)['text']

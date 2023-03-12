@@ -32,10 +32,10 @@ class LLaMATokenizerFast(PreTrainedTokenizerFast):
         vocab_file=None,
         merges_file=None,
         tokenizer_file=None,
-        unk_token="[unk]",
-        bos_token="[bos]",
-        eos_token="[eos]",
-        pad_token="[pad]",
+        unk_token="<|endoftext|>",
+        bos_token="<|endoftext|>",
+        eos_token="<|endoftext|>",
+        pad_token="<|endoftext|>",
         add_prefix_space=False,
         **kwargs
     ):
