@@ -16,7 +16,7 @@ import tqdm
 import random
 
 
-class JsonlDataset(torch.utils.data.Dataset):
+class BcolzDataset(torch.utils.data.Dataset):
     def __init__(self, tokenizer, dir_path: str, source: str) -> None:
         self.tokenizer = tokenizer
         self.dir_path = dir_path

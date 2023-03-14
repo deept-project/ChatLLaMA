@@ -1,0 +1,1 @@
+bcolz@git+https://github.com/quantmew/bcolz@master#egg=bcolz
