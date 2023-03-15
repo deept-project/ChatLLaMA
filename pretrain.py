@@ -14,6 +14,7 @@ from llama.model.configuration_llama import LLaMAConfig
 from llama.model.tokenization_llama_fast import LLaMATokenizerFast
 
 from llama.data.dataset.jsonl_dataset import JsonlDataset
+from llama.data.dataset.jsonl_gzip_dataset import JsonlGzipDataset
 
 import pytorch_lightning as pl
 from pytorch_lightning.callbacks import ModelCheckpoint
@@ -25,9 +26,9 @@ from transformers import DataCollatorForLanguageModeling, DataCollatorWithPaddin
 
 def main():
     parser = argparse.ArgumentParser()
-    parser.add_argument('-c', '--config', type=str, default="./configs/base.json", help='JSON file for configuration')
+    parser.add_argument('-c', '--config', type=str, default="./checkpoints/LLaMA-base/config.json", help='JSON file for configuration')
     parser.add_argument('-a', '--accelerator', type=str, default="gpu", help='training device')
-    parser.add_argument('-d', '--device', type=str, default="0", help='training device ids')
+    parser.add_argument('-d', '--device', type=str, default="3", help='training device ids')
     parser.add_argument('-s', '--seed', type=int, default=43, help='training seed')
     parser.add_argument('-b', '--batch-size', type=int, default=4, help='training seed')
     parser.add_argument('-cp', '--checkpoint', type=str, default="checkpoints/LLaMA-base", help='checkpoint path')
@@ -39,14 +40,14 @@ def main():
 
     tokenizer = LLaMATokenizerFast.from_pretrained(args.checkpoint)
 
-    train_dataset = JsonlDataset(tokenizer, "./dataset", "train")
-    valid_dataset = JsonlDataset(tokenizer, "./dataset", "valid")
+    train_dataset = JsonlGzipDataset(tokenizer, "./dataset/test.jsonl.gz")
+    valid_dataset = JsonlGzipDataset(tokenizer, "./dataset/test.jsonl.gz")
         
     collate_fn = DataCollatorWithPadding(tokenizer)
     train_loader = DataLoader(train_dataset, batch_size=args.batch_size, num_workers=16, shuffle=True, pin_memory=True, collate_fn=collate_fn)
     valid_loader = DataLoader(valid_dataset, batch_size=1, num_workers=16, shuffle=False, pin_memory=True, collate_fn=collate_fn)
 
-    model = PretrainLLaMA(**hparams)
+    model = PretrainLLaMA(hparams)
     checkpoint_callback = ModelCheckpoint(dirpath=None, save_last=True, every_n_train_steps=2000)
 
     devices = [int(n.strip()) for n in args.device.split(",")]

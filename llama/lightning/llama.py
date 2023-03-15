@@ -15,7 +15,8 @@ from ..model.modeling_llama import LLaMAModel, LLaMALMHeadModel
 class PretrainLLaMA(pl.LightningModule):
     def __init__(self, config: LLaMAConfig) -> None:
         super().__init__()
-        self.lm_model = LLaMALMHeadModel()
+        self.config = config
+        self.lm_model = LLaMALMHeadModel(config)
         self.lm_head = nn.Linear(config.d_model, config.vocab_size, bias=True)
 
     def forward(self, source_tokens: Dict[str, torch.Tensor], target_tokens: Dict[str, torch.Tensor]):

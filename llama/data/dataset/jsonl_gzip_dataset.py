@@ -12,17 +12,17 @@ import torch.utils.data
 from torch import nn
 from torch.nn import functional as F
 
+import gzip
 import tqdm
 import random
 
 
-class BcolzDataset(torch.utils.data.Dataset):
-    def __init__(self, tokenizer, dir_path: str, source: str) -> None:
+class JsonlGzipDataset(torch.utils.data.Dataset):
+    def __init__(self, tokenizer, path: str) -> None:
         self.tokenizer = tokenizer
-        self.dir_path = dir_path
-        self.source = source
+        self.path = path
         self.data = []
-        with open(self.dir_path, "r", encoding="utf-8") as f:
+        with gzip.open(self.path, "rt", encoding="utf-8") as f:
             for line in f:
                 obj = json.loads(line)
                 self.data.append(obj["text"])

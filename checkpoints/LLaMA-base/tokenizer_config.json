@@ -4,6 +4,6 @@
   "eos_token": "<|endoftext|>",
   "model_max_length": 1024,
   "special_tokens_map_file": null,
-  "tokenizer_class": "GPT2Tokenizer",
+  "tokenizer_class": "LLaMATokenizer",
   "unk_token": "<|endoftext|>"
 }

@@ -1,24 +1,13 @@
 {
-    "apply_residual_connection_post_layernorm": false,
-    "attention_dropout": 0.0,
-    "architectures": [
-      "BloomForCausalLM"
-    ],
-    "attention_softmax_in_fp32": true,
-    "pad_token_id": 3,
-    "bos_token_id": 1,
-    "eos_token_id": 2,
-    "hidden_dropout": 0.0,
-    "initializer_range": 0.02,
-    "layer_norm_epsilon": 1e-05,
-    "masked_softmax_fusion": true,
-    "model_type": "gpt2",
-    "n_embed": 14336,
-    "n_layer": 70,
-    "num_attention_heads": 112,
-    "pretraining_tp": 4,
-    "slow_but_exact": false,
-    "transformers_version": "4.21.0",
-    "use_cache": true,
-    "vocab_size": 250880
-  }
+  "d_model": 512,
+  "n_layers": 8,
+  "n_heads": 8,
+  "multiple_of": 256,
+  "norm_eps": 1e-5,
+  "max_batch_size": 32,
+  "max_seq_len": 2048,
+  "vocab_size": 52000,
+  "bos_token_id": 0,
+  "eos_token_id": 0,
+  "pad_token_id": 0
+}

@@ -134,82 +134,53 @@ class LLaMAAttention(nn.Module):
         return self.wo(output)
 
 class LLaMAFeedForward(nn.Module):
-    def __init__(self, d_model: int, hidden_dim: int, multiple_of: int):
+    def __init__(self, config: LLaMAConfig):
         super().__init__()
-        hidden_dim = int(2 * hidden_dim / 3)
-        hidden_dim = multiple_of * ((hidden_dim + multiple_of - 1) // multiple_of)
+        self.d_model: int = config.d_model
+        self.hidden_dim: int = 4 * config.d_model
+        self.multiple_of: int = config.multiple_of
 
-        self.w1 = nn.Linear(d_model, hidden_dim, bias=False)
-        self.w2 = nn.Linear(hidden_dim, d_model, bias=False)
-        self.w3 = nn.Linear(d_model, hidden_dim, bias=False)
+        self.ffn_hidden_dim = int(2 * self.hidden_dim / 3)
+        self.ffn_hidden_dim = self.multiple_of * ((self.ffn_hidden_dim + self.multiple_of - 1) // self.multiple_of)
+
+        self.w1 = nn.Linear(self.d_model, self.ffn_hidden_dim, bias=False)
+        self.w2 = nn.Linear(self.ffn_hidden_dim, self.d_model, bias=False)
+        self.w3 = nn.Linear(self.d_model, self.ffn_hidden_dim, bias=False)
 
     def forward(self, x):
         # x: (batch, seq_len, d_model)
         return self.w2(F.silu(self.w1(x)) * self.w3(x))
 
 class LLaMALayer(nn.Module):
-    def __init__(self, layer_id, config):
+    def __init__(self, layer_id: int, config: LLaMAConfig):
         super().__init__()
-        self.attn = LLaMAAttention(config)
-        self.ff = LLaMAFeedForward(config)
-        self.dropout = nn.Dropout(config.dropout)
-        self.chunk_size_feed_forward = config.chunk_size_feed_forward
-        self.seq_len_dim = 1
-
-    def forward(
-        self,
-        output_h,
-        output_g,
-        attn_mask_h,
-        attn_mask_g,
-        r,
-        seg_mat,
-        mems=None,
-        target_mapping=None,
-        head_mask=None,
-        output_attentions=False,
-    ):
-        outputs = self.attn(
-            output_h,
-            output_g,
-            attn_mask_h,
-            attn_mask_g,
-            r,
-            seg_mat,
-            mems=mems,
-            target_mapping=target_mapping,
-            head_mask=head_mask,
-            output_attentions=output_attentions,
+        self.n_heads = config.n_heads
+        self.d_model = config.d_model
+        self.head_dim = config.d_model // config.n_heads
+        self.attention = LLaMAAttention(config)
+        self.feed_forward = LLaMAFeedForward(
+            dim=config.d_model, hidden_dim=4 * config.d_model, multiple_of=config.multiple_of
         )
-        output_h, output_g = outputs[:2]
+        self.layer_id = layer_id
+        self.attention_norm = RMSNorm(config.d_model, eps=config.norm_eps)
+        self.ffn_norm = RMSNorm(config.d_model, eps=config.norm_eps)
 
-        if output_g is not None:
-            output_g = apply_chunking_to_forward(
-                self.ff_chunk, self.chunk_size_feed_forward, self.seq_len_dim, output_g
-            )
-        output_h = apply_chunking_to_forward(self.ff_chunk, self.chunk_size_feed_forward, self.seq_len_dim, output_h)
-
-        outputs = (output_h, output_g) + outputs[2:]  # Add again attentions if there are there
-        return outputs
-
-    def ff_chunk(self, output_x):
-        output_x = self.ff(output_x)
-        return output_x
+    def forward(self, x: torch.Tensor, start_pos: int, freqs_cis: torch.Tensor, mask: Optional[torch.Tensor]):
+        h = x + self.attention.forward(self.attention_norm(x), start_pos, freqs_cis, mask)
+        out = h + self.feed_forward.forward(self.ffn_norm(h))
+        return out
 
 
 class LLaMAModel(PreTrainedModel):
-    def __init__(self, config):
+    def __init__(self, config: LLaMAConfig):
         super().__init__(config)
 
-        self.d_model: int = 512
-        self.n_layers: int = 8
-        self.n_heads: int = 8
-        self.vocab_size: int = -1  # defined later by tokenizer
-        self.multiple_of: int = 256  # make SwiGLU hidden layer size multiple of large power of 2
-        self.norm_eps: float = 1e-5
-
-        self.max_batch_size: int = 32
-        self.max_seq_len: int = 2048
+        self.d_model: int = config.d_model
+        self.n_layers: int = config.n_layers
+        self.n_heads: int = config.n_heads
+        self.vocab_size: int = config.vocab_size  # defined later by tokenizer
+        self.multiple_of: int = config.multiple_of  # make SwiGLU hidden layer size multiple of large power of 2
+        self.norm_eps: float = config.norm_eps
 
         self.word_embedding = nn.Embedding(self.vocab_size, self.d_model)
 
